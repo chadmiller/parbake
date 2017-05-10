@@ -188,6 +188,7 @@ if __name__ == "__main__":
                 continue
             browser = subprocess.Popen(
                     [command_full_path,
+                        # Headless disabled.  https://bugs.chromium.org/p/chromium/issues/detail?id=696198
                         #"--headless",
                         "--incognito",
                         "--no-default-browser-check",
