@@ -24,3 +24,4 @@ Next steps are
   after some number of requests, and start new ones on demand.
 - to keep chrome from caching information, ever, through use of site policies
   or writing configurations before starting the browser.
+- to add configurability of storage location of cache.
