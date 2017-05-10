@@ -129,8 +129,6 @@ async def process_page_and_store(url, cache_filename, port):
                 # EBADFILE? Already closed? TODO(chad): strace this
                 #os.close(temp_fileno)
 
-            return aiohttp.web.Response(text=page, headers={"Content-Type": metadata.get("Content-Type") or "text/html"})
-
         finally:
             requests.get(close_rpc_url)
 
