@@ -11,7 +11,8 @@ port for devtools protocol access. I discover the port number in a file on
 disk, and connect a websocket to it to operate on user-entered web pages.
 
 It also listens as a web server, on a human-discoverable "/" empty path, and
-offers a form to the user.
+offers a form to the user. There are two JSON-returning API URLs that return
+rendered web page, or the resource list and download times.
 
 When a URL is entered and submitted, we discover links to JSON resources 
 of the page contents, at time of page-loaded signal, and all network resources
@@ -25,3 +26,4 @@ Next steps are
 - to keep chrome from caching information, ever, through use of site policies
   or writing configurations before starting the browser.
 - to add configurability of storage location of cache.
+- to handle a page never becoming Loaded.
