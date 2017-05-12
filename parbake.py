@@ -90,12 +90,15 @@ async def process_page_and_store(url, cache_filename, port):
                                 metadata["Content-Type"] = response["headers"].get("content-type")
 
                             # Save everything we load because of this URL.
-                            metadata["timings"].append([response["url"], packet["params"]["timestamp"] - response["timing"]["requestTime"]])
+                            metadata["timings"].append([
+                                    response["url"], 
+                                    packet["params"]["timestamp"] - response["timing"]["requestTime"]])
                             continue
 
                         if packet["method"] == "Page.loadEventFired":
                             await ws.send("""{ "id": 4, "method": "Runtime.enable" }""")
-                            await ws.send("""{ "id": 5, "method": "Runtime.evaluate", "params": { "expression": "document.body.parentElement.outerHTML" } }""")
+                            await ws.send("""{ "id": 5, "method": "Runtime.evaluate", """
+                                    """"params": { "expression": "document.body.parentElement.outerHTML" } }""")
                             continue
 
                         discarded_lines.add("method {0}".format(packet["method"]))
