@@ -148,14 +148,26 @@ async def get_url_prepared(port, request):
     return given_url_to_process, processed_filename
 
 async def handle_front(port, request):
-    url, _ = await get_url_prepared(port, request)
+    url, processed_filename = await get_url_prepared(port, request)
 
     if not url:
         return aiohttp.web.Response(text=FORM_FMT.format("", "", ""), content_type="text/html")
 
+    with open(processed_filename) as f:
+        first_line = f.readline()
+        metadata = json.loads(first_line)
+
+    timings_entries = "".join(["""<li>{0}<br><span style="display: inline-block; background: blue; height: 1ex; width: {1:0.1f}cm;"> </span> {1:0.2f}sec</li>""".format(p[0], p[1]) for p in metadata["timings"]])
+
     return aiohttp.web.Response(text=FORM_FMT.format("", url, """
-            <a href="{0}">rendered</a>,
-            <a href="{1}">dependency timing</a>""".format(request.app.router["rendered"].url_for().with_query(url=url), request.app.router["timings"].url_for().with_query(url=url))), content_type="text/html")
+            {0:0.2f} sec to fetch base page.
+            <a href="{1}">rendered</a>,
+            <a href="{2}">dependency timing</a><ul style="font-size: smaller;">{3}</ul>""".format(
+                metadata["timings"][0][1],
+                request.app.router["rendered"].url_for().with_query(url=url),
+                request.app.router["timings"].url_for().with_query(url=url),
+                timings_entries
+                )), content_type="text/html")
 
 async def handle_get_rendered(port, request):
     url, processed_filename = await get_url_prepared(port, request)
