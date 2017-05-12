@@ -63,11 +63,15 @@ async def process_page_and_store(url, cache_filename, port):
             await ws.send("""{ "id": 2, "method": "Network.enable" }""")
             await ws.send("""{ "id": 3, "method": "Page.navigate", "params": { "url": "%s" } }"""%(url,))
 
+            start_timestamp = None
             done = False
             while not done:
                 message = await ws.recv()
                 if message:
                     packet = json.loads(message)
+
+                    if not start_timestamp and "params" in packet and "timestamp" in packet["params"]:
+                        start_timestamp = packet["params"]["timestamp"]
 
                     if "error" in packet:
                         logger.warning("Received error packet: %s", 
@@ -88,6 +92,9 @@ async def process_page_and_store(url, cache_filename, port):
                             if "content-type" not in metadata:
                                 # save the content type for replaying later.
                                 metadata["Content-Type"] = response["headers"].get("content-type")
+
+                            if start_timestamp:
+                                metadata["render time"] = packet["params"]["timestamp"] - start_timestamp
 
                             # Save everything we load because of this URL.
                             metadata["timings"].append([
@@ -157,13 +164,14 @@ async def handle_front(port, request):
         first_line = f.readline()
         metadata = json.loads(first_line)
 
-    timings_entries = "".join(["""<li>{0}<br><span style="display: inline-block; background: blue; height: 1ex; width: {1:0.1f}cm;"> </span> {1:0.2f}sec</li>""".format(p[0], p[1]) for p in metadata["timings"]])
+    timings_entries = "".join(["""<li>{0}<br><span style="display: inline-block; background: blue; height: 1ex; width: {1:0.1f}cm;"> </span> {1:0.2f} sec fetch time</li>""".format(p[0], p[1]) for p in metadata["timings"]])
 
     return aiohttp.web.Response(text=FORM_FMT.format("", url, """
-            {0:0.2f} sec to fetch base page.
-            <a href="{1}">rendered</a>,
-            <a href="{2}">dependency timing</a><ul style="font-size: smaller;">{3}</ul>""".format(
+            <p>{0:0.2f} sec to fetch base page. {1:0.2f} sec to render.</p>
+            <p><a href="{2}">rendered</a>, <a href="{3}">dependency timing</a></p>
+            <ul style="font-size: smaller;">{4}</ul>""".format(
                 metadata["timings"][0][1],
+                metadata["render time"] or "??",
                 request.app.router["rendered"].url_for().with_query(url=url),
                 request.app.router["timings"].url_for().with_query(url=url),
                 timings_entries
