@@ -168,7 +168,7 @@ async def handle_front(port, request):
 
     return aiohttp.web.Response(text=FORM_FMT.format("", url, """
             <p>{0:0.2f} sec to fetch base page. {1:0.2f} sec to render.</p>
-            <p><a href="{2}">rendered</a>, <a href="{3}">dependency timing</a></p>
+            <p><a href="{2}">API for render result</a>, <a href="{3}">API for timing</a></p>
             <ul style="font-size: smaller;">{4}</ul>""".format(
                 metadata["timings"][0][1],
                 metadata["render time"] or "??",
@@ -195,7 +195,7 @@ async def handle_get_timings(port, request):
     with open(processed_filename) as f:
         first_line = f.readline()
         metadata = json.loads(first_line)
-        return aiohttp.web.json_response({"for": url, "rendered": str(request.app.router["rendered"].url_for().with_query(url=url)), "resource-timing": metadata.get("timings")})
+        return aiohttp.web.json_response({"for": url, "rendered": str(request.app.router["rendered"].url_for().with_query(url=url)), "resource-timing": metadata.get("timings"), "render-timing": metadata["render time"]})
 
 
 if __name__ == "__main__":
